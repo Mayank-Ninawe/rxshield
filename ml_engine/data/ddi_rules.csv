@@ -1,0 +1,19 @@
+drug_a,drug_b,severity,mechanism,clinical_effect,recommendation
+Aspirin,Warfarin,CRITICAL,Additive antiplatelet + anticoagulant,Major bleeding risk,Avoid combination or monitor INR closely
+Metformin,Alcohol,HIGH,Increased lactic acid production,Lactic acidosis,Contraindicated
+Digoxin,Furosemide,HIGH,Furosemide causes hypokalemia,Digoxin toxicity risk,Monitor potassium levels
+Phenytoin,Warfarin,HIGH,CYP2C9 competition,Increased bleeding or seizure risk,Monitor INR and drug levels
+Carbamazepine,Oral Contraceptives,HIGH,CYP3A4 induction,Reduced contraceptive efficacy,Use alternative contraception
+Rifampicin,Warfarin,HIGH,CYP enzyme induction,Reduced anticoagulation,Increase warfarin dose + monitor INR
+Ciprofloxacin,Warfarin,HIGH,CYP1A2 inhibition,Increased bleeding,Monitor INR
+Azithromycin,Digoxin,MEDIUM,Increased digoxin absorption,Digoxin toxicity,Monitor digoxin levels
+Tramadol,MAO Inhibitors,CRITICAL,Serotonin syndrome risk,Seizures + hyperthermia,Contraindicated
+Morphine,Benzodiazepines,CRITICAL,Additive CNS/respiratory depression,Respiratory arrest,Avoid or use lowest doses
+Spironolactone,Lisinopril,HIGH,Additive potassium retention,Hyperkalemia,Monitor serum potassium
+Simvastatin,Azithromycin,MEDIUM,CYP3A4 inhibition,Myopathy risk,Consider dose reduction
+Ibuprofen,Warfarin,HIGH,Additive bleeding + GI risk,GI hemorrhage,Avoid NSAIDs with anticoagulants
+Metformin,Contrast dye,HIGH,Renal impairment risk,Lactic acidosis,Hold metformin 48hr before contrast
+Furosemide,Gentamicin,HIGH,Additive ototoxicity,Hearing loss,Avoid combination
+Atenolol,Verapamil,CRITICAL,Additive AV node suppression,Complete heart block,Contraindicated
+Lithium,Ibuprofen,HIGH,Reduced lithium excretion,Lithium toxicity,Avoid NSAIDs with lithium
+Clopidogrel,Omeprazole,MEDIUM,CYP2C19 inhibition,Reduced antiplatelet effect,Use pantoprazole instead

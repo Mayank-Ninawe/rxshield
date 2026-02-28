@@ -1,0 +1,81 @@
+
+── CHECK 1: File Existence ──────────────────────────────────────────────
+  ✅ patients.json — found
+  ✅ prescriptions.json — found
+  ✅ augmented_prescriptions.json — found
+  ✅ drug_formulary.csv — found
+  ✅ lasa_pairs.csv — found
+  ✅ ddi_rules.csv — found
+  ✅ diagnosis_drug_map.csv — found
+  ✅ dataset_stats.json — found
+
+── CHECK 2: Patient Data Quality ────────────────────────────────────────
+  ✅ Total records — found 5000, expected 5000
+  ✅ No duplicate patient_ids — 0 duplicates found
+  ✅ Age range 18–85 — min=18, max=85
+  ✅ Field 'patient_id' present — all present
+  ✅ Field 'name' present — all present
+  ✅ Field 'age' present — all present
+  ✅ Field 'gender' present — all present
+  ✅ Field 'diagnosis' present — all present
+  ✅ Field 'allergies' present — all present
+  ✅ Field 'current_medications' present — all present
+
+── CHECK 3: Prescription Data Quality ───────────────────────────────────
+  ✅ Total records — found 8000, expected 8000
+  ✅ Correct prescriptions — found 5000, expected 5000
+  ✅ Error prescriptions — found 3000, expected 3000
+  ✅ No duplicate prescription_ids — 0 duplicates found
+  ✅ All prescriptions have ≥1 drug — all have drugs
+  ✅ is_correct is always boolean
+  ✅ Error prescriptions have non-empty error_types — all present
+  📊 Error type distribution:
+       DDI                       750
+       DOSAGE_ERROR              750
+       INDICATION_MISMATCH       750
+       LASA                      750
+
+── CHECK 4: Drug Formulary Quality ──────────────────────────────────────
+  ✅ Drug count — found 40, expected 40
+  ✅ No duplicate drug_names — all unique
+  ✅ All normal_dose_mg > 0 — all valid
+  📊 Drug count by class:
+       Antibiotic                     3
+       Proton Pump Inhibitor          2
+       NSAID                          2
+       ACE Inhibitor                  2
+       Statin                         2
+       Antiepileptic                  2
+       Opioid Analgesic               2
+       Antihistamine                  2
+       Antitubercular                 2
+       Calcium Channel Blocker        1
+       Anticoagulant                  1
+       NSAID/Antiplatelet             1
+       Beta Blocker                   1
+       Biguanide                      1
+       Analgesic                      1
+       Insulin                        1
+       Sulfonylurea                   1
+       ARB                            1
+       Macrolide Antibiotic           1
+       Thyroid hormone                1
+       Corticosteroid                 1
+       Beta-2 Agonist                 1
+       Antiplatelet                   1
+       Cardiac Glycoside              1
+       Potassium-sparing Diuretic     1
+       Loop Diuretic                  1
+       Thiazide Diuretic              1
+       Opioid                         1
+       Tetracycline Antibiotic        1
+       Antifungal                     1
+
+── CHECK 5: Cross-Reference Check ───────────────────────────────────────
+  ✅ Cross-reference check: 100/100 passed — 100/100 (0 failed)
+
+── Summary ──────────────────────────────────────────────────────────────
+  ✅ Passed: 29
+  ❌ Failed: 0
+
+  Data is ready for ML training ✅

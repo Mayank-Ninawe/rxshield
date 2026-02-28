@@ -1,0 +1,16 @@
+diagnosis,appropriate_drugs,inappropriate_drugs_example
+Type 2 Diabetes,Metformin|Glibenclamide|Insulin Glargine|Sitagliptin,Furosemide|Prednisolone
+Hypertension,Amlodipine|Atenolol|Lisinopril|Losartan|Ramipril|Hydrochlorothiazide,Metformin|Levothyroxine
+Bacterial Infection,Amoxicillin|Ciprofloxacin|Azithromycin|Doxycycline|Metronidazole,Furosemide|Atenolol
+GERD,Omeprazole|Pantoprazole|Ranitidine,Metformin|Atenolol|Warfarin
+Hypothyroidism,Levothyroxine,Propylthiouracil|Carbimazole
+Epilepsy,Phenytoin|Carbamazepine|Valproate|Levetiracetam,Tramadol|Bupropion
+Atrial Fibrillation,Digoxin|Warfarin|Atenolol|Diltiazem,Ibuprofen|Verapamil+Atenolol
+Heart Failure,Furosemide|Lisinopril|Spironolactone|Digoxin|Ramipril,Ibuprofen|Verapamil
+Asthma,Salbutamol|Prednisolone|Montelukast|Ipratropium,Atenolol|Aspirin
+Tuberculosis,Rifampicin|Isoniazid|Pyrazinamide|Ethambutol,Fluoroquinolones as monotherapy
+Pain,Paracetamol|Ibuprofen|Tramadol|Diclofenac,Warfarin|Metformin
+Hypercholesterolemia,Atorvastatin|Simvastatin|Rosuvastatin,Metformin|Amlodipine as monotherapy
+UTI,Ciprofloxacin|Nitrofurantoin|Cotrimoxazole|Amoxicillin,Metformin|Atenolol
+Fungal Infection,Fluconazole|Itraconazole|Terbinafine,Antibiotics|Metformin
+Malaria,Chloroquine|Artemether|Doxycycline,Metformin|Atenolol

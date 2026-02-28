@@ -1,0 +1,12 @@
+{
+  "total": 8000,
+  "correct": 5000,
+  "with_errors": 3000,
+  "error_breakdown": {
+    "LASA": 750,
+    "DDI": 750,
+    "DOSAGE_ERROR": 750,
+    "INDICATION_MISMATCH": 750
+  },
+  "class_balance": "37.5% errors / 62.5% correct"
+}

@@ -1,0 +1,21 @@
+drug_a,drug_b,confusion_type,risk_level,notes
+Metformin,Metronidazole,look-alike/sound-alike,HIGH,Common Indian pharmacy confusion
+Atenolol,Amlodipine,look-alike,MEDIUM,Both start with A antihypertensives
+Losartan,Lisinopril,sound-alike,MEDIUM,Both L antihypertensives ARB vs ACE
+Aspirin,Afrin,sound-alike,HIGH,Completely different drug classes
+Glibenclamide,Glimepiride,look-alike,HIGH,Both sulfonylureas different potency
+Tramadol,Toradol,sound-alike,CRITICAL,Opioid vs NSAID confusion
+Prednisolone,Prednisone,look-alike,MEDIUM,Slightly different pharmacokinetics
+Omeprazole,Esomeprazole,look-alike,LOW,Same class different isomers
+Furosemide,Torsemide,sound-alike,HIGH,Both loop diuretics different potency
+Morphine,Hydromorphone,sound-alike,CRITICAL,8x potency difference
+Cetirizine,Sertraline,sound-alike,HIGH,Antihistamine vs antidepressant
+Carbamazepine,Oxcarbazepine,look-alike,MEDIUM,Related antiepileptics
+Clonidine,Klonopin,sound-alike,CRITICAL,Antihypertensive vs benzodiazepine
+Azithromycin,Erythromycin,look-alike,MEDIUM,Both macrolide antibiotics
+Rifampicin,Rifaximin,look-alike,HIGH,Different indications and absorption
+Diazepam,Diltiazem,sound-alike,CRITICAL,Benzodiazepine vs calcium channel blocker
+Digoxin,Doxepin,sound-alike,CRITICAL,Cardiac glycoside vs antidepressant
+Amoxicillin,Amoxapine,sound-alike,HIGH,Antibiotic vs antidepressant
+Hydroxyzine,Hydralazine,look-alike/sound-alike,CRITICAL,Antihistamine vs antihypertensive
+Sitagliptin,Saxagliptin,look-alike,MEDIUM,Both DPP-4 inhibitors
