@@ -160,4 +160,4 @@ client/dist/
 
 # ML model weights and checkpoints (too large for GitHub)
 ml_engine/ner/saved_model/
-tmpclaude-*/
+tmpclaude-*
