@@ -135,16 +135,35 @@ async def analyze_prescription(request: AnalyzeRequest):
             mismatch_results = check_all_drugs(drug_names, patient_dict)
             for result in mismatch_results:
                 if result.get('is_mismatch'):
+                    drug_class = result.get('drug_class', 'unknown')
+                    drug_indications = result.get('drug_indications', 'unknown')
+                    diagnosis_list = patient_dict.get('diagnosis', [])
+                    
+                    explanation = (
+                        f"Drug class '{drug_class}' "
+                        f"indicated for: {drug_indications}. "
+                        f"Patient diagnosis: {diagnosis_list}. "
+                        f"This combination was flagged as potentially inappropriate."
+                    )
+                    
+                    solution = (
+                        f"Verify clinical rationale for prescribing {result['drug_name']} "
+                        f"for this diagnosis. If off-label use, document justification. "
+                        f"Consider alternatives indicated for the patient's condition."
+                    )
+                    
                     errors.append(ErrorDetail(
                         error_type="INDICATION_MISMATCH",
                         drug=result['drug_name'],
                         severity=result['risk_level'],
                         message=f"Drug '{result['drug_name']}' may not be indicated for "
-                                f"{patient_dict.get('diagnosis', [])}",
+                                f"{diagnosis_list}",
+                        explanation=explanation,
+                        solution=solution,
                         confidence=result['confidence'],
                         details={
-                            "drug_class": result.get('drug_class'),
-                            "drug_indications": result.get('drug_indications')
+                            "drug_class": drug_class,
+                            "drug_indications": drug_indications
                         }
                     ))
         except Exception as e:
@@ -168,15 +187,34 @@ async def analyze_prescription(request: AnalyzeRequest):
                         patient_dict.get('weight_kg', 70)
                     )
                     if anomaly['is_anomaly']:
+                        ratio = anomaly['dose_ratio']
+                        direction = "higher" if ratio > 1 else "lower"
+                        normal_dose = anomaly['normal_dose_mg']
+                        
+                        explanation = (
+                            f"Prescribed dose ({dose_mg} mg) is "
+                            f"{ratio:.1f}x the standard dose ({normal_dose} mg). "
+                            f"{'Overdose risks toxicity.' if ratio > 1 else 'Underdose may be ineffective.'}"
+                        )
+                        
+                        solution = (
+                            f"{'Reduce' if ratio > 1 else 'Increase'} the dose to the "
+                            f"recommended {normal_dose} mg. "
+                            f"Verify patient weight, renal/hepatic function. "
+                            f"Consult dosing guidelines for this specific patient profile."
+                        )
+                        
                         errors.append(ErrorDetail(
                             error_type="DOSAGE_ERROR",
                             drug=drug.drug_name,
                             severity=anomaly['severity'],
                             message=anomaly['message'],
+                            explanation=explanation,
+                            solution=solution,
                             details={
                                 "prescribed_dose": dose_mg,
-                                "normal_dose": anomaly['normal_dose_mg'],
-                                "dose_ratio": anomaly['dose_ratio']
+                                "normal_dose": normal_dose,
+                                "dose_ratio": ratio
                             }
                         ))
             except Exception as e:
@@ -189,11 +227,28 @@ async def analyze_prescription(request: AnalyzeRequest):
         try:
             lasa = check_lasa_confusion(drug_name)
             if lasa['has_lasa_risk'] and lasa['risk_level'] in ['CRITICAL', 'HIGH']:
+                pairs_str = ', '.join([p['partner'] for p in lasa['known_lasa_pairs']])
+                
+                explanation = (
+                    f"'{drug_name}' has known look-alike/sound-alike similarity with: "
+                    f"{pairs_str}. Dispensing errors between these drugs are documented "
+                    f"in medical literature and can have serious consequences."
+                )
+                
+                solution = (
+                    f"Use TALL MAN lettering: write drug name with emphasis on "
+                    f"distinguishing characters. Verbally confirm drug name with patient. "
+                    f"Apply barcode verification at dispensing. Double-check with a "
+                    f"second pharmacist before dispensing."
+                )
+                
                 errors.append(ErrorDetail(
                     error_type="LASA",
                     drug=drug_name,
                     severity=lasa['risk_level'],
                     message=lasa['recommendation'],
+                    explanation=explanation,
+                    solution=solution,
                     details={
                         "known_pairs": lasa['known_lasa_pairs'],
                         "phonetic_similar": lasa['phonetic_similar_drugs']
@@ -208,11 +263,26 @@ async def analyze_prescription(request: AnalyzeRequest):
     allergies_lower = [a.lower() for a in patient_dict.get('allergies', [])]
     for drug_name in drug_names:
         if drug_name.lower() in allergies_lower:
+            explanation = (
+                f"Patient has a documented allergy to {drug_name}. "
+                f"Administering this drug may cause anaphylaxis, rash, "
+                f"angioedema, or other allergic reactions."
+            )
+            
+            solution = (
+                f"Immediately discontinue {drug_name}. "
+                f"Consider therapeutic alternatives: "
+                f"review allergy history and prescribe a drug from a "
+                f"different class without cross-reactivity."
+            )
+            
             errors.append(ErrorDetail(
                 error_type="ALLERGY",
                 drug=drug_name,
                 severity="CRITICAL",
-                message=f"ALERT: Patient is allergic to {drug_name}!"
+                message=f"ALERT: Patient is allergic to {drug_name}!",
+                explanation=explanation,
+                solution=solution
             ))
     
     # ========================================================================

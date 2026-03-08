@@ -74,9 +74,33 @@ const ErrorCard = ({ error }) => {
         {error.message}
       </p>
 
+      {/* Explanation Section */}
+      {error.explanation && (
+        <div className="mt-3 bg-gray-800/60 dark:bg-gray-800/60 rounded-lg p-3 border-l-4 border-l-orange-500">
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wide mb-1">
+            🔬 Why This Is a Problem
+          </p>
+          <p className="text-sm text-gray-300 dark:text-gray-300 leading-relaxed">
+            {error.explanation}
+          </p>
+        </div>
+      )}
+
+      {/* Solution Section */}
+      {error.solution && (
+        <div className="mt-2 bg-green-900/20 dark:bg-green-900/20 rounded-lg p-3 border-l-4 border-l-green-500">
+          <p className="text-xs font-semibold text-green-400 dark:text-green-400 uppercase tracking-wide mb-1">
+            ✅ Recommended Action
+          </p>
+          <p className="text-sm text-green-300 dark:text-green-300 leading-relaxed">
+            {error.solution}
+          </p>
+        </div>
+      )}
+
       {/* Confidence */}
       {error.confidence !== undefined && (
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-gray-500 mb-2 mt-3">
           Model confidence: {(error.confidence * 100).toFixed(1)}%
         </p>
       )}

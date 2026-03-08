@@ -173,6 +173,50 @@ const RiskReport = ({ result, onReset }) => {
               ⚠️ Issues Detected ({errors.length})
             </h3>
 
+            {/* Error Type Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+              {[
+                "ALLERGY",
+                "DDI",
+                "DOSAGE_ERROR",
+                "INDICATION_MISMATCH",
+                "LASA",
+              ].map((type) => {
+                const count = errors.filter(
+                  (e) => e.error_type === type,
+                ).length;
+                if (count === 0) return null;
+                const icons = {
+                  ALLERGY: "🚨",
+                  DDI: "⚡",
+                  DOSAGE_ERROR: "💊",
+                  INDICATION_MISMATCH: "📋",
+                  LASA: "🔤",
+                };
+                const colors = {
+                  ALLERGY: "red",
+                  DDI: "orange",
+                  DOSAGE_ERROR: "yellow",
+                  INDICATION_MISMATCH: "red",
+                  LASA: "purple",
+                };
+                return (
+                  <div
+                    key={type}
+                    className={`bg-${colors[type]}-900/30 border border-${colors[type]}-700/50 rounded-xl p-3 text-center`}
+                  >
+                    <p className="text-lg">{icons[type]}</p>
+                    <p className={`text-${colors[type]}-400 font-bold text-lg`}>
+                      {count}
+                    </p>
+                    <p className="text-gray-400 text-xs mt-0.5">
+                      {type.replace("_", " ")}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
             {/* ALLERGY errors (critical, show first) */}
             {groupedErrors.ALLERGY.length > 0 && (
               <div>

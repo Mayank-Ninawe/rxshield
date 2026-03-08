@@ -55,7 +55,8 @@ nodeApi.interceptors.response.use(
 
 // PRESCRIPTION APIs (hit Node.js which calls ML)
 export const prescriptionApi = {
-  analyze: (data) => nodeApi.post("/api/prescription/analyze", data),
+  analyze: (data) =>
+    nodeApi.post("/api/prescription/analyze", data, { timeout: 120000 }), // 2 minutes for ML processing
   getById: (id) => nodeApi.get(`/api/prescription/${id}`),
   getByPatient: (patientId) =>
     nodeApi.get(`/api/prescription/patient/${patientId}`),
@@ -83,6 +84,7 @@ export const ocrApi = {
   extract: (formData) =>
     nodeApi.post("/api/ocr/extract", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 120000, // 2 minutes timeout for OCR
     }),
 };
 

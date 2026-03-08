@@ -24,11 +24,15 @@ export const usePrescription = () => {
       });
       setResult(res.data);
 
-      if (res.data.riskLevel === "SAFE") {
+      // Check if there are actual errors
+      const hasErrors = res.data.errors && res.data.errors.length > 0;
+
+      if (!hasErrors || res.data.riskLevel === "SAFE") {
         toast.success("✅ Prescription is safe!");
       } else if (res.data.riskLevel === "CRITICAL") {
         toast.error("🚨 Critical errors detected!");
       } else {
+        // Only show warning if there are actual errors
         toast("⚠️ Issues found - review required", {
           icon: "⚠️",
           style: { background: "#854d0e", color: "#fef9c3" },

@@ -87,6 +87,8 @@ class ErrorDetail(BaseModel):
     drug_b: Optional[str] = None
     severity: str
     message: str
+    explanation: Optional[str] = None   # WHY this is a problem
+    solution: Optional[str] = None      # WHAT to do about it
     confidence: Optional[float] = None
     details: Optional[dict] = None
 

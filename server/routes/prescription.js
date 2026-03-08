@@ -19,10 +19,14 @@ router.post("/analyze", async (req, res) => {
     let riskScore = 0;
 
     try {
-      const mlResponse = await axios.post(`${process.env.ML_API_URL}/analyze`, {
-        prescriptionText,
-        patientData,
-      });
+      const mlResponse = await axios.post(
+        `${process.env.ML_API_URL}/analyze`,
+        {
+          prescriptionText,
+          patientData,
+        },
+        { timeout: 120000 }, // 2 minutes timeout for ML processing
+      );
       extractedDrugs = mlResponse.data.extractedDrugs ?? [];
       dosages = mlResponse.data.dosages ?? [];
       errors = mlResponse.data.errors ?? [];
