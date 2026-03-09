@@ -127,7 +127,7 @@ router.post(
       // Step 2: Parse patient data from request body
       let patientData = {
         age: 40,
-        gender: "Unknown",
+        gender: "Other", // Must be Male|Female|Other per ML API schema
         weight_kg: 70,
         diagnosis: [],
         allergies: [],

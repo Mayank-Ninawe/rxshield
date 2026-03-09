@@ -519,12 +519,50 @@ const OCRUpload = () => {
                                  border-gray-200 dark:border-gray-700/30"
                     >
                       <div className="flex-1">
-                        <span
-                          className="text-gray-900 dark:text-white 
-                                     font-semibold text-sm"
-                        >
-                          💊 {drug.name}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="text-gray-900 dark:text-white 
+                                       font-semibold text-sm"
+                          >
+                            💊 {drug.name}
+                          </span>
+                          {/* Show OCR correction badge if name was corrected */}
+                          {drug.ocr_name &&
+                            drug.ocr_name.toLowerCase() !==
+                              drug.name.toLowerCase() && (
+                              <span
+                                className="text-xs bg-yellow-900/40 
+                                         dark:bg-yellow-900/40 
+                                         text-yellow-700 dark:text-yellow-400
+                                         px-2 py-0.5 rounded-full border
+                                         border-yellow-700/40 dark:border-yellow-700/40"
+                                title={`OCR read: "${drug.ocr_name}"`}
+                              >
+                                ✏️ corrected
+                              </span>
+                            )}
+                          {/* Confidence badge */}
+                          {drug.confidence && drug.confidence !== "HIGH" && (
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full border
+                                ${
+                                  drug.confidence === "MEDIUM"
+                                    ? "bg-orange-900/40 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 border-orange-700/40 dark:border-orange-700/40"
+                                    : "bg-red-900/40 dark:bg-red-900/40 text-red-700 dark:text-red-400 border-red-700/40 dark:border-red-700/40"
+                                }`}
+                            >
+                              {drug.confidence} conf.
+                            </span>
+                          )}
+                        </div>
+                        {/* OCR original name tooltip */}
+                        {drug.ocr_name &&
+                          drug.ocr_name.toLowerCase() !==
+                            drug.name.toLowerCase() && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              OCR read: "{drug.ocr_name}"
+                            </p>
+                          )}
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {drug.dose && (
                             <span

@@ -80,7 +80,12 @@ COMMON_DRUGS_PATTERN = re.compile(
     r'Metronidazole|Clindamycin|Doxycycline|Levofloxacin|'
     r'Hydrochlorothiazide|Enalapril|Bisoprolol|Propranolol|'
     r'Esomeprazole|Lansoprazole|Rabeprazole|Tamsulosin|Finasteride|'
-    r'Sildenafil|Tadalafil|Mon
+    r'Sildenafil|Tadalafil|Montelukast|Loratadine|Fexofenadine|'
+    r'Amitriptyline|Duloxetine|Mirtazapine|Risperidone|Quetiapine|'
+    r'Olanzapine|Haloperidol|Chlorpromazine|Domperidone|Ondansetron|'
+    r'Calcium|Vitamin|Folic|Iron|Zinc|Magnesium)\b',
+    re.IGNORECASE
+)
 
 
 def fuzzy_match_drugs(text: str, cutoff: float = 0.75) -> list:
@@ -142,12 +147,7 @@ def fuzzy_match_drugs(text: str, cutoff: float = 0.75) -> list:
                     matched_drugs.append((word, correct_name, similarity))
                     seen_correct_names.add(correct_name)
     
-    return matched_drugstelukast|Loratadine|Fexofenadine|'
-    r'Amitriptyline|Duloxetine|Mirtazapine|Risperidone|Quetiapine|'
-    r'Olanzapine|Haloperidol|Chlorpromazine|Domperidone|Ondansetron|'
-    r'Calcium|Vitamin|Folic|Iron|Zinc|Magnesium)\b',
-    re.IGNORECASE
-)
+    return matched_drugs
 
 
 def extract_drugs_with_regex(text: str) -> list:
@@ -201,13 +201,9 @@ def preprocess_for_handwriting(image: Image.Image) -> Image.Image:
     try:
         # Convert to RGB if needed
         if image.mode != 'RGB':
-      Preprocess image to enhance handwriting visibility
-    print("  🔧 Preprocessing image for better handwriting recognition...")
-    enhanced_image = preprocess_for_handwriting(image)
-    
-    # Convert PIL image to bytes for Gemini
-    img_byte_arr = io.BytesIO()
-    enhanced_    # Increase contrast to make handwriting more visible
+            image = image.convert('RGB')
+        
+        # Increase contrast to make handwriting more visible
         enhancer = ImageEnhance.Contrast(image)
         image = enhancer.enhance(1.8)  # Increase contrast by 80%
         
@@ -229,6 +225,93 @@ def preprocess_for_handwriting(image: Image.Image) -> Image.Image:
     except Exception as e:
         print(f"  ⚠️ Preprocessing failed: {e}, using original image")
         return image
+
+
+# ============================================================================
+# SECTION 2.7 — Drug Resolution with Gemini (Clinical Context)
+# ============================================================================
+
+def resolve_drugs_from_text(raw_ocr_text: str) -> list:
+    """
+    Takes raw OCR text (possibly with misspellings) and uses Gemini
+    to identify ALL drug names using clinical context.
+    Returns a normalized list of drugs with correct spellings.
+    This is the KEY fix — handles any level of OCR distortion.
+    """
+    if not raw_ocr_text or len(raw_ocr_text.strip()) < 5:
+        return []
+    
+    model = load_gemini()
+    
+    prompt = f"""You are a clinical pharmacist and medical OCR expert.
+Below is text extracted from a handwritten medical prescription using OCR.
+The OCR may have introduced errors, misspellings, and garbled characters.
+
+YOUR TASK: Identify every drug/medicine name in this text, even if badly 
+misspelled, and return their CORRECT standard pharmaceutical names.
+
+Use clinical context clues:
+- Numbers followed by mg/mcg/ml = doses → the word before it is a drug name
+- Words like BID, TID, OD, BD, QD, twice daily = frequency → word before is a drug
+- "Rx" symbol = prescription → items listed below are drugs
+- Brand names, generic names, and common misspellings of both
+
+OCR TEXT TO ANALYZE:
+\"\"\"
+{raw_ocr_text}
+\"\"\"
+
+Return ONLY a valid JSON array. No explanation. No markdown.
+Each object must have exactly these fields:
+
+[
+  {{
+    "ocr_name": "name exactly as it appeared in OCR text",
+    "correct_name": "correct standard drug name (generic preferred)",
+    "brand_name": "common brand name if applicable or null",
+    "dose": "dose with unit e.g. 100mg — extracted from OCR context",
+    "frequency": "frequency as written e.g. BID, twice daily, OD, TID",
+    "confidence": "HIGH or MEDIUM or LOW based on how certain you are",
+    "reasoning": "brief note on how you identified this drug"
+  }}
+]
+
+Rules:
+- If no drugs found, return empty array []
+- Include ALL drugs, even if confidence is LOW
+- For dose: always include the unit (mg, mcg, ml, units)
+- If dose unclear from OCR, put null
+- correct_name should be the INN (generic) name
+- Do NOT include vitamins, minerals unless clearly prescribed therapeutically
+- Return ONLY the JSON array, nothing else"""
+
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=2048
+            )
+        )
+        
+        raw = response.text.strip()
+        
+        # Clean markdown
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0].strip()
+        
+        drugs = json.loads(raw)
+        print(f"  ✅ Gemini resolved {len(drugs)} drugs from OCR text")
+        for d in drugs:
+            print(f"     '{d['ocr_name']}' → '{d['correct_name']}' "
+                  f"({d['dose']}, {d['frequency']}) [{d['confidence']}]")
+        return drugs
+        
+    except Exception as e:
+        print(f"  ⚠️ Drug resolution error: {e}")
+        return []
 
 
 # ============================================================================
@@ -345,7 +428,7 @@ STRICT RULES — follow exactly:
             "data": img_bytes
         }
         
-        response = model.gener15,      # slightly higher to better interpret unclear handwriting
+        response = model.generate_content(
             [prompt, image_part],
             generation_config=genai.types.GenerationConfig(
                 temperature=0.05,      # even lower for more deterministic extraction
@@ -373,7 +456,11 @@ STRICT RULES — follow exactly:
         else:
             print(f"  ⚠️ No drugs found in first attempt")
         
-        # RETRY if drugs array This is a HANDWRITTEN PRESCRIPTION. Look at it again VERY CAREFULLY.
+        # RETRY if drugs array is empty
+        if len(extracted.get("drugs", [])) == 0:
+            print("  🔄 Retrying with handwriting-focused prompt...")
+            try:
+                retry_prompt = """This is a HANDWRITTEN PRESCRIPTION. Look at it again VERY CAREFULLY.
 
 You are a doctor's handwriting expert. Your ONLY job: Find ALL medicine names in this image.
 
@@ -404,22 +491,29 @@ Return ONLY this JSON format (no explanation, no markdown):
   ]
 }}
 
-IMPORTANT: Include EVERY potential3,  # higher to encourage creative interpretation of handwritingcated guesses. DO NOT return empty array unless this is definitely not a prescription
-}}
+IMPORTANT: Include EVERY potential drug name even if you're not 100% certain. Make educated guesses. DO NOT return empty array unless this is definitely not a prescription.
 
 EVEN IF UNSURE, include potential drug names. Do not return empty drugs array unless you are 100% certain there are NO medicines in this image."""
             
-            retry_response = model.generate_content(
-                [retry_prompt, image_part],
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.2,  # slightly higher to be more creative in finding drugs
-                    max_output_tokens=2048
+                retry_response = model.generate_content(
+                    [retry_prompt, image_part],
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=0.2,  # slightly higher to be more creative in finding drugs
+                        max_output_tokens=2048
+                    )
                 )
-            )
-            retry_raw = retry_response.text.strip()
-            if "```json" in retry_raw:
-                retry_raw = retry_raw.split("```json")[1].split("```")[0].strip()
-            elif "```" in retry_raw: focused on handwriting
+                retry_raw = retry_response.text.strip()
+                if "```json" in retry_raw:
+                    retry_raw = retry_raw.split("```json")[1].split("```")[0].strip()
+                elif "```" in retry_raw:
+                    retry_raw = retry_raw.split("```")[1].split("```")[0].strip()
+                
+                retry_extracted = json.loads(retry_raw)
+                if retry_extracted.get("drugs"):
+                    extracted["drugs"] = retry_extracted["drugs"]
+                    print(f"  ✅ Retry found {len(extracted['drugs'])} drugs")
+                else:
+                    # Second attempt: handwriting-focused prompt
                     print("  ⚠️ Second attempt also empty, trying handwriting-focused prompt...")
                     simple_prompt = """This image contains handwritten prescriptions with poor doctor's handwriting.
                     
@@ -432,15 +526,7 @@ List the drug names you can see (comma-separated):"""
                         [simple_prompt, image_part],
                         generation_config=genai.types.GenerationConfig(
                             temperature=0.4,  # even higher for creative handwriting interpretation
-                           {len(extracted['drugs'])} drugs")
-                else:
-                    # Third attempt: ultra-simple prompt
-                    print("  ⚠️ Second attempt also empty, trying ultra-simple prompt...")
-                    simple_prompt = "List every medicine/drug name you can see in this image as comma-separated values:"
-                    simple_response = model.generate_content(
-                        [simple_prompt, image_part],
-                        generation_config=genai.types.GenerationConfig(
-                            temperature=0.3, max_output_tokens=512
+                            max_output_tokens=512
                         )
                     )
                     drug_text = simple_response.text.strip()
@@ -452,6 +538,25 @@ List the drug names you can see (comma-separated):"""
                                                   "duration": None, "quantity": None, "instructions": None} 
                                                  for name in drug_names[:10]]  # max 10
                             print(f"  ✅ Simple prompt found {len(extracted['drugs'])} drug names")
+                    else:
+                        # Third attempt: ultra-simple prompt
+                        print("  ⚠️ Second attempt also empty, trying ultra-simple prompt...")
+                        simple_prompt = "List every medicine/drug name you can see in this image as comma-separated values:"
+                        simple_response = model.generate_content(
+                            [simple_prompt, image_part],
+                            generation_config=genai.types.GenerationConfig(
+                                temperature=0.3, max_output_tokens=512
+                            )
+                        )
+                        drug_text = simple_response.text.strip()
+                        if drug_text and len(drug_text) > 3:
+                            # Parse comma-separated list
+                            drug_names = [d.strip() for d in drug_text.split(',') if d.strip()]
+                            if drug_names:
+                                extracted["drugs"] = [{"name": name, "dose": None, "frequency": None, 
+                                                      "duration": None, "quantity": None, "instructions": None} 
+                                                     for name in drug_names[:10]]  # max 10
+                                print(f"  ✅ Simple prompt found {len(extracted['drugs'])} drug names")
             except Exception as e:
                 print(f"  ❌ Retry parsing failed: {e}")
                 pass
@@ -459,12 +564,54 @@ List the drug names you can see (comma-separated):"""
         raw_text = extracted.get("raw_text", "")
         final_drugs = extracted.get("drugs", [])
         
+        # ── DRUG RESOLUTION: Fix misspelled drug names ──────────────────────
+        raw_text_for_resolution = extracted.get("raw_text", "")
+        
+        # Always run drug resolution on raw_text — more reliable than
+        # the structured drugs from the OCR step (handles misspellings)
+        resolved_drugs = resolve_drugs_from_text(raw_text_for_resolution)
+        
+        # Build final drugs list:
+        # Priority: resolved_drugs (if non-empty) → original extracted drugs
+        if resolved_drugs:
+            # Convert resolved format to standard structuredDrug format
+            final_drugs_resolved = []
+            for rd in resolved_drugs:
+                final_drugs_resolved.append({
+                    "name": rd["correct_name"],           # corrected name
+                    "ocr_name": rd.get("ocr_name"),       # original OCR spelling
+                    "brand_name": rd.get("brand_name"),
+                    "dose": rd.get("dose"),
+                    "frequency": rd.get("frequency"),
+                    "duration": None,
+                    "quantity": None,
+                    "confidence": rd.get("confidence", "MEDIUM"),
+                    "reasoning": rd.get("reasoning")
+                })
+            final_drugs = final_drugs_resolved
+            print(f"  ✅ Used resolved drug list: {[d['name'] for d in final_drugs]}")
+        elif not extracted.get("drugs"):
+            # Last resort: retry with explicit drug focus
+            print("  ⚠️ No drugs from either method, running targeted extraction...")
+            retry = resolve_drugs_from_text(raw_text_for_resolution)
+            if retry:
+                final_drugs = [{
+                    "name": r["correct_name"],
+                    "ocr_name": r.get("ocr_name"),
+                    "dose": r.get("dose"),
+                    "frequency": r.get("frequency"),
+                    "duration": None, 
+                    "quantity": None
+                } for r in retry]
+        
+        # ─────────────────────────────────────────────────────────────────────
+        
         # Final log before returning
         print(f"  📤 Returning {len(final_drugs)} drugs in response")
         
         return {
             "text": raw_text,
-            "engine": "Gemini Vision",
+            "engine": "Gemini Vision + Drug Resolution",
             "language": extracted.get("language_detected", language),
             "confidence": 0.95,   # Gemini is highly reliable
             "structured": {

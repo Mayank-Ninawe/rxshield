@@ -38,7 +38,7 @@ from ner.predict_ner import extract_entities
 from classifier.predict_classifier import check_all_drugs
 from anomaly.predict_anomaly import check_dosage_anomaly
 from lasa.lasa_detector import check_lasa_confusion
-from ocr.ocr_pipeline import ocr_from_base64, clean_prescription_text
+from ocr.ocr_pipeline import ocr_from_base64, clean_prescription_text, resolve_drugs_from_text
 
 
 # ============================================================================
@@ -284,6 +284,25 @@ async def analyze_from_ocr(request: AnalyzeFromOCRRequest):
     
     # Build drug names and extracted_drugs directly from OCR structured data
     drug_names = [d.name for d in request.structuredDrugs if d.name]
+    
+    # If no structured drugs came from OCR, try resolving from raw text
+    if not request.structuredDrugs and request.rawText:
+        print("⚠️ No structured drugs received, resolving from raw text...")
+        resolved = resolve_drugs_from_text(request.rawText)
+        if resolved:
+            request = request.copy(update={
+                "structuredDrugs": [
+                    OCRDrug(
+                        name=r["correct_name"],
+                        ocr_name=r.get("ocr_name"),
+                        dose=r.get("dose"),
+                        frequency=r.get("frequency")
+                    )
+                    for r in resolved
+                ]
+            })
+            drug_names = [d.name for d in request.structuredDrugs if d.name]
+            print(f"✅ Resolved {len(request.structuredDrugs)} drugs from raw text")
     
     extracted_drugs = [
         ExtractedDrug(

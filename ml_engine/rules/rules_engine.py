@@ -1,5 +1,49 @@
 import re
+import difflib
 from typing import List, Dict, Optional
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SECTION 0 — BRAND TO GENERIC MAPPING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BRAND_TO_GENERIC = {
+    # Common brand names → generic (INN) names
+    "beteloe":      "metoprolol",
+    "betaloc":      "metoprolol",
+    "betalol":      "metoprolol",
+    "meteloc":      "metoprolol",
+    "dorzolamidum": "dorzolamide",
+    "dorzolam":     "dorzolamide",
+    "oxprelol":     "oxprenolol",
+    "oxprenelol":   "oxprenolol",
+    "cimetidin":    "cimetidine",
+    "cimetidim":    "cimetidine",
+    "amoxicilin":   "amoxicillin",
+    "amoxycillin":  "amoxicillin",
+    "paracetamol":  "paracetamol",
+    "parcetamol":   "paracetamol",
+    "metfromin":    "metformin",
+    "metfomin":     "metformin",
+    "atorvastin":   "atorvastatin",
+    "atorvasttin":  "atorvastatin",
+    "amlodipine":   "amlodipine",
+    "amlodipin":    "amlodipine",
+    "lisinopil":    "lisinopril",
+    "lissinopril":  "lisinopril",
+    "ciprofloxacin":"ciprofloxacin",
+    "ciprofloxacn": "ciprofloxacin",
+    "warfrin":      "warfarin",
+    "warfarine":    "warfarin",
+    "diclofenec":   "diclofenac",
+    "diclofenack":  "diclofenac",
+    "ibeprofen":    "ibuprofen",
+    "ibuprofen":    "ibuprofen",
+    "ibuprofin":    "ibuprofen",
+    "omeprazol":    "omeprazole",
+    "pantoprazol":  "pantoprazole",
+    "azithromycn":  "azithromycin",
+    "azithromicin": "azithromycin",
+}
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTION 1 — COMPREHENSIVE DDI DATABASE
@@ -337,9 +381,36 @@ DOSAGE_DATABASE = {
 # SECTION 3 — HELPER FUNCTIONS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-def normalise(drug_name: str) -> str:
-    """Normalize drug name to lowercase for matching."""
-    return drug_name.lower().strip()
+def normalise(name: str) -> str:
+    """Lowercase, strip, resolve brand→generic, fuzzy fallback."""
+    if not name:
+        return ""
+    n = name.lower().strip()
+    n = re.sub(r'\s+', ' ', n)
+    
+    # Direct brand→generic lookup
+    resolved = BRAND_TO_GENERIC.get(n, n)
+    if resolved != n:
+        return resolved
+    
+    # If already in known drug list, return as-is
+    all_known = list(DOSAGE_DATABASE.keys()) + list(BRAND_TO_GENERIC.keys())
+    if resolved in all_known:
+        return resolved
+    
+    # Fuzzy match against known drug names (handles OCR typos)
+    matches = difflib.get_close_matches(
+        resolved,
+        all_known,
+        n=1,
+        cutoff=0.75    # 75% similarity threshold
+    )
+    if matches:
+        best = matches[0]
+        # Resolve brand→generic on fuzzy match too
+        return BRAND_TO_GENERIC.get(best, best)
+    
+    return resolved  # return as-is if no fuzzy match
 
 
 def parse_dose_mg(dose_str: Optional[str]) -> Optional[float]:

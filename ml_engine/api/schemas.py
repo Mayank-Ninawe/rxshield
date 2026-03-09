@@ -64,11 +64,15 @@ class AnalyzeRequest(BaseModel):
 class OCRDrug(BaseModel):
     """Drug information from OCR structured output."""
     name: str
+    ocr_name: Optional[str] = None
+    brand_name: Optional[str] = None
     dose: Optional[str] = None
     frequency: Optional[str] = None
     duration: Optional[str] = None
     quantity: Optional[str] = None
     instructions: Optional[str] = None
+    confidence: Optional[str] = None
+    reasoning: Optional[str] = None
 
 
 class AnalyzeFromOCRRequest(BaseModel):
@@ -126,10 +130,13 @@ class AnalyzeResponse(BaseModel):
 class StructuredDrug(BaseModel):
     """Structured drug information extracted from prescription."""
     name: str
+    ocr_name: Optional[str] = None        # 🆕 original OCR spelling
+    brand_name: Optional[str] = None      # 🆕 brand name if applicable
     dose: Optional[str] = None
     frequency: Optional[str] = None
     duration: Optional[str] = None
     quantity: Optional[str] = None
+    confidence: Optional[str] = None      # 🆕 HIGH/MEDIUM/LOWreasoning: Optional[str] = None       # 🆕 why Gemini identified it
 
 
 class PatientInfo(BaseModel):
