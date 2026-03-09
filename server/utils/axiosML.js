@@ -7,7 +7,7 @@ const axios = require("axios");
 
 const mlAxios = axios.create({
   baseURL: process.env.ML_API_URL || "http://localhost:8000",
-  timeout: 30000, // 30 seconds (Gemini is fast now)
+  timeout: 45000, // 45 seconds for Gemini OCR + drug resolution
   headers: { "Content-Type": "application/json" },
 });
 

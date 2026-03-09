@@ -15,25 +15,39 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ── Middleware ────────────────────────────────────────────────────────────────
+// CORS Configuration for production
+const allowedOrigins = [
+  "http://localhost:5173", // Vite dev server
+  "http://localhost:3000", // Alternative dev port
+  "http://localhost:4173", // Vite preview
+  process.env.FRONTEND_URL, // Vercel production URL
+  process.env.CLIENT_URL, // Fallback (legacy)
+].filter(Boolean); // Remove undefined values
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
+      // Allow requests with no origin (mobile apps, Postman, curl)
       if (!origin) return callback(null, true);
 
-      // In development, allow any localhost origin
-      if (origin.match(/^http:\/\/localhost:\d+$/)) {
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // In production, check against environment variable
-      if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) {
+      // In development, allow any localhost origin as fallback
+      if (
+        process.env.NODE_ENV !== "production" &&
+        origin.match(/^http:\/\/localhost:\d+$/)
+      ) {
         return callback(null, true);
       }
 
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.use(express.json({ limit: "10mb" }));
@@ -53,6 +67,11 @@ app.get("/health", (_req, res) => {
     mlApiUrl: process.env.ML_API_URL,
     timestamp: new Date().toISOString(),
   });
+});
+
+// Health check for Railway (uses /api/health)
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", service: "RxShield Backend" });
 });
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
