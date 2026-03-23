@@ -179,7 +179,7 @@ const OCRUpload = () => {
         {steps.map((s, i) => {
           const Icon = s.icon;
           const isActive = s.key === step;
-          const isDone = currentIdx > i;
+          const isDone = currentIdx > i || (step === "done" && s.key === "done");
           return (
             <div key={s.key} className="flex items-center gap-2">
               <div
